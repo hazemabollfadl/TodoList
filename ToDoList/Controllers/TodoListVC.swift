@@ -1,20 +1,23 @@
 import UIKit
+import CoreData
 
 class TodoListVC: UITableViewController  {
     
-    let defaults = UserDefaults.standard
+    var itemArray=[Item]()
     
-    var itemArray:[Items]=[
-        Items(name: "A", done: false),
-        Items(name: "B", done: false),
-        Items(name: "C", done: false)
-    ]
+    
+     
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let safeItemArray=defaults.array(forKey: "TodoListArray") as? [String]{
-            itemArray=safeItemArray
-        }
+        loadItems()
+        
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        
+        
     }
     
     @IBAction func AddButtonPressed(_ sender: UIBarButtonItem) {
@@ -33,13 +36,14 @@ class TodoListVC: UITableViewController  {
                 self.present(alert, animated: true)
             }else{
                 //stores added item in the array of itemArray
-                self.itemArray.append(textResult.text!)
                 
-                //set the appended item in the itemarray to User defaults using the default object created above
-                self.defaults.set(self.itemArray, forKey: "TodoListArray")
+                let newItem = Item(context: self.context)
+                newItem.name = textResult.text!
+                newItem.done = false
+                self.itemArray.append(newItem)
                 
-                //Reloads the tableView
-                self.tableView.reloadData()
+                self.saveItems()
+                
             }
         }
         
@@ -55,18 +59,22 @@ class TodoListVC: UITableViewController  {
 
 //MARK: - UITableViewDataSources
 extension TodoListVC{
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let itemList = itemArray[indexPath.row].name
         
         //let cell=tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell")!
         let cell=UITableViewCell(style: .default , reuseIdentifier: "ToDoItemCell")
         
         
-        cell.textLabel?.text=itemList
+        let itemList = itemArray[indexPath.row]
+        
+        cell.textLabel?.text=itemList.name
+        
+        cell.accessoryType = itemList.done ? .checkmark : .none
         
         return cell
         
@@ -76,25 +84,77 @@ extension TodoListVC{
 
 //MARK: - UITableViewDelegate
 extension TodoListVC{
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        if (tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark){
-            itemArray[indexPath.row].done=false
-        }else{
-            itemArray[indexPath.row].done=true
-        }
         
-        if itemArray[indexPath.row].done == false{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
+        //Sets a specific value for the given key name which is the attribute or field
+        //itemArray[indexPath.row].setValue("completed", forKey: "name")]
         
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        
+        saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
+
+//MARK: - Model manipulation methods
+extension TodoListVC{
+    
+    func saveItems(){
+        
+        do{
+            try context.save()
+        }catch{
+            print("Error saving context\(error)")
+        }
+        
+        //Reloads the tableView
+        tableView.reloadData()
+    }
+    
+    
+    //NSFetchRequest object with declared type(Item)
+    func loadItems(with request: NSFetchRequest<Item>=Item.fetchRequest()){
+        
+        do{
+            //access context and try to fetch the data specified by "request" and save it to the itemArray
+            itemArray =  try context.fetch(request)
+        }catch{
+            print("Error couldn't fetch the Data from context: \(error)")
+        }
+        tableView.reloadData()
+    }
+}
+
+//MARK: - UISearchBarDelegate
+extension TodoListVC:UISearchBarDelegate{
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request:NSFetchRequest<Item>=Item.fetchRequest()
+        
+        let predicate=NSPredicate(format: "name CONTAINS[cd] %@", searchBar.text!)
+        request.predicate=predicate
+        
+        let sortDescriptor=NSSortDescriptor(key: "name", ascending: true)
+        request.sortDescriptors=[sortDescriptor]
+        
+        loadItems(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count==0{
+            loadItems()
+            
+            //Tells the search bar to go to the background and make the keyboard dissappears
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+}
  
