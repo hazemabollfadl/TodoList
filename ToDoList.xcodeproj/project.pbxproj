@@ -14,6 +14,7 @@
 		6F60CBBE2B924D9500A51922 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6F60CBBD2B924D9500A51922 /* Assets.xcassets */; };
 		6F60CBC12B924D9500A51922 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6F60CBBF2B924D9500A51922 /* LaunchScreen.storyboard */; };
 		6F60CBD02B94E5B000A51922 /* DataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6F60CBCE2B94E5B000A51922 /* DataModel.xcdatamodeld */; };
+		6FBE64742BA3A2CE00C650B9 /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBE64732BA3A2CE00C650B9 /* CategoryViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		6F60CBC02B924D9500A51922 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6F60CBC22B924D9500A51922 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6F60CBCF2B94E5B000A51922 /* DataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataModel.xcdatamodel; sourceTree = "<group>"; };
+		6FBE64732BA3A2CE00C650B9 /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 		6F60CBCD2B9375E300A51922 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				6FBE64732BA3A2CE00C650B9 /* CategoryViewController.swift */,
 				6F60CBB82B924D9300A51922 /* TodoListVC.swift */,
 			);
 			path = Controllers;
@@ -173,6 +176,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6FBE64742BA3A2CE00C650B9 /* CategoryViewController.swift in Sources */,
 				6F60CBD02B94E5B000A51922 /* DataModel.xcdatamodeld in Sources */,
 				6F60CBB92B924D9300A51922 /* TodoListVC.swift in Sources */,
 				6F60CBB52B924D9300A51922 /* AppDelegate.swift in Sources */,

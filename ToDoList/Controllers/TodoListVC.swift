@@ -3,20 +3,23 @@ import CoreData
 
 class TodoListVC: UITableViewController  {
     
-    var itemArray=[Item]()
+    var itemArray:[Item]=[]
     
+    var selectedCategory:Categories? {
+        //Runs When a variable gets a new value
+        didSet{
+            loadItems()
+        }
+    }
     
-     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadItems()
         
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        
+        //        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
     }
     
@@ -40,6 +43,8 @@ class TodoListVC: UITableViewController  {
                 let newItem = Item(context: self.context)
                 newItem.name = textResult.text!
                 newItem.done = false
+                newItem.parentCategory = self.selectedCategory
+                
                 self.itemArray.append(newItem)
                 
                 self.saveItems()
@@ -91,8 +96,8 @@ extension TodoListVC{
         //Sets a specific value for the given key name which is the attribute or field
         //itemArray[indexPath.row].setValue("completed", forKey: "name")]
         
-//        context.delete(itemArray[indexPath.row])
-//        itemArray.remove(at: indexPath.row)
+        //        context.delete(itemArray[indexPath.row])
+        //        itemArray.remove(at: indexPath.row)
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveItems()
@@ -119,7 +124,22 @@ extension TodoListVC{
     
     
     //NSFetchRequest object with declared type(Item)
-    func loadItems(with request: NSFetchRequest<Item>=Item.fetchRequest()){
+    func loadItems(with request: NSFetchRequest<Item>=Item.fetchRequest(),_ predicate:NSPredicate? = nil){
+        
+        //Filters the incoming data based on if the parent category matches the sleceted category
+        let categoryPredicate = NSPredicate(format: "parentCategory.title MATCHES %@", selectedCategory!.title!)
+        
+        
+        if let safePredicate=predicate{
+            
+            //Making Compound(Multiple) predicates to be added to the request
+            let compoundPredicate=NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate,safePredicate])
+            request.predicate=compoundPredicate
+            
+        }else{
+            request.predicate=categoryPredicate
+        }
+        
         
         do{
             //access context and try to fetch the data specified by "request" and save it to the itemArray
@@ -137,13 +157,16 @@ extension TodoListVC:UISearchBarDelegate{
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         let request:NSFetchRequest<Item>=Item.fetchRequest()
         
+        
+        //Filters the incoming data based on if the text typed matches the sleceted item regardless of caps
         let predicate=NSPredicate(format: "name CONTAINS[cd] %@", searchBar.text!)
         request.predicate=predicate
         
+        //Sorts the Data list asscending based on the 'name'  attribute
         let sortDescriptor=NSSortDescriptor(key: "name", ascending: true)
         request.sortDescriptors=[sortDescriptor]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -157,4 +180,4 @@ extension TodoListVC:UISearchBarDelegate{
         }
     }
 }
- 
+
