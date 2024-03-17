@@ -82,8 +82,18 @@ class CategoryViewController: UITableViewController {
         if let indexPath=tableView.indexPathForSelectedRow{
             destinationVC.selectedCategory=categoryArray[indexPath.row]
         }
-        
     }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            context.delete(categoryArray[indexPath.row])
+            categoryArray.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            saveItems()
+        }
+    }
+    
+    
     
     //MARK: - Data Manipulation Methods
   

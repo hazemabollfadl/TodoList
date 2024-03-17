@@ -80,6 +80,8 @@ extension TodoListVC{
         cell.textLabel?.text=itemList.name
         
         cell.accessoryType = itemList.done ? .checkmark : .none
+    
+        cell.tintColor=UIColor.systemIndigo
         
         return cell
         
@@ -153,6 +155,8 @@ extension TodoListVC{
 
 //MARK: - UISearchBarDelegate
 extension TodoListVC:UISearchBarDelegate{
+    
+    
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         let request:NSFetchRequest<Item>=Item.fetchRequest()
