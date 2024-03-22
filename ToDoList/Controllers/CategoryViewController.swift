@@ -1,20 +1,32 @@
 import UIKit
-import CoreData
+import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: UITableViewController {
-
     
-    var categoryArray=[Categories]()
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let realm=try! Realm()
+    
+    var categoryArray: Results<Category>?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadItems()
-
+        
+        loadCategories()
+        tableView.rowHeight  = 60
+        tableView.separatorStyle = .none
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar=navigationController?.navigationBar else{fatalError("Navigation Bar doesn't exist!")}
+        navBar.backgroundColor = .systemBackground
+        navBar.largeTitleTextAttributes=[NSAttributedString.Key.foregroundColor: UIColor(named: "MyColorSet")!]
+    }
+    
+    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
-       
+        
         var textResult = UITextField()
         
         let alert=UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert )
@@ -28,15 +40,14 @@ class CategoryViewController: UITableViewController {
                 alert.addAction(action)
                 self.present(alert, animated: true)
             }else{
+                
                 //stores added item in the array of categoryArray
-                
-                let newCategory = Categories(context: self.context)
+                let newCategory = Category()
                 newCategory.title = textResult.text!
+                newCategory.colorOfCell=UIColor.init(randomFlatColorOf: .dark).hexValue()
                 
-                self.categoryArray.append(newCategory)
                 
-                self.saveItems()
-                
+                self.save(the: newCategory)
             }
         }
         
@@ -52,16 +63,20 @@ class CategoryViewController: UITableViewController {
     //MARK: - UITableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryArray.count
+        return categoryArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell=UITableViewCell(style: .default, reuseIdentifier: "CategoryCell")
         
-        let itemList=categoryArray[indexPath.row]
+        let itemList=categoryArray?[indexPath.row]
+        cell.textLabel?.text=itemList?.title ?? "No Categories Added yet"
         
-        cell.textLabel?.text=itemList.title
+        cell.backgroundColor=UIColor(hexString: (itemList?.colorOfCell) ?? "5856D6")
+        
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
+        
         
         return cell
     }
@@ -71,8 +86,6 @@ class CategoryViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         performSegue(withIdentifier: "goToItems", sender: self)
-        
-        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -80,38 +93,47 @@ class CategoryViewController: UITableViewController {
         let destinationVC=segue.destination as! TodoListVC
         
         if let indexPath=tableView.indexPathForSelectedRow{
-            destinationVC.selectedCategory=categoryArray[indexPath.row]
+            destinationVC.selectedCategory=categoryArray?[indexPath.row]
         }
     }
     
+    //Swipe to delet category
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
         if editingStyle == .delete {
-            context.delete(categoryArray[indexPath.row])
-            categoryArray.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .fade)
-            saveItems()
+            if let safeCategoryArray=categoryArray?[indexPath.row]{
+                do{
+                    try realm.write {
+                        realm.delete(safeCategoryArray )
+                    }
+                }catch{
+                    print("Couldn't delete Item: \(error)")
+                }
+            }
         }
+        tableView.reloadData()
     }
     
     
     
     //MARK: - Data Manipulation Methods
-  
-    func saveItems(){
+    
+    func save(the category:Category){
         do{
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         }catch{
             print("Error saving the data\(error)")
         }
         tableView.reloadData()
     }
     
-    func loadItems(with request: NSFetchRequest<Categories>=Categories.fetchRequest()){
-        do {
-            categoryArray = try context.fetch(request)
-        }catch{
-            print("Error fetching the data\(error)")
-        }
+    func loadCategories(){
+        
+        //Fetches Data as a Result Container containing bunch of category objects
+        categoryArray = realm.objects(Category.self)
+        
         tableView.reloadData()
     }
 }
