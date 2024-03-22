@@ -7,10 +7,10 @@ a service called Realm Database as a backend database to store and retrieve your
 
 * integrated third party libraries in the app using Cocoapods.
 * stored data in the iPhone storage using Realm database.
-* Smooth Navigation through the APP
-* Search items in a list
-* Swipe to delete
-* Easily Add Categories and their associated Items
+* Smooth Navigation through the APP.
+* Search items in a list.
+* Swipe to delete.
+* Easily Add Categories and their associated Items.
 
 ## Screenshots
 
